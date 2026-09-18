@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mosquito-dna-pwa-v1';
+const CACHE_NAME = 'mosquito-dna-pwa-v1-1';
 
 const APP_SHELL = [
   '/',
@@ -36,45 +36,64 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Never cache API calls.
+  // API 요청은 캐시하지 않음
   if (url.pathname === '/api') {
     return;
   }
 
-  // Navigation: prefer the newest app, but fall back to cached shell offline.
+  // 페이지 이동: 최신 버전 우선, 오프라인이면 캐시 사용
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then(response => {
           const copy = response.clone();
+
           caches.open(CACHE_NAME)
-            .then(cache => cache.put('/index.html', copy));
+            .then(cache =>
+              cache.put('/index.html', copy)
+            );
+
           return response;
         })
         .catch(() =>
           caches.match('/index.html')
-            .then(response => response || caches.match('/'))
+            .then(response =>
+              response || caches.match('/')
+            )
         )
     );
+
     return;
   }
 
-  // Static shell: cache-first.
-  if (request.method === 'GET' && url.origin === self.location.origin) {
+  // 정적 파일은 캐시 우선
+  if (
+    request.method === 'GET' &&
+    url.origin === self.location.origin
+  ) {
     event.respondWith(
       caches.match(request)
         .then(cached => {
-          if (cached) return cached;
+          if (cached) {
+            return cached;
+          }
 
           return fetch(request)
             .then(response => {
-              if (!response || !response.ok) {
+              if (
+                !response ||
+                !response.ok
+              ) {
                 return response;
               }
 
-              const copy = response.clone();
+              const copy =
+                response.clone();
+
               caches.open(CACHE_NAME)
-                .then(cache => cache.put(request, copy));
+                .then(cache =>
+                  cache.put(request, copy)
+                );
 
               return response;
             });
