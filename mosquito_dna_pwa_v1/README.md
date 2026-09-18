@@ -211,3 +211,5 @@ Manifest 설정:
 
 따라서 Apps Script Web App을 `Anyone`으로 배포하더라도,
 정상 API 호출에는 별도 secret이 필요합니다.
+
+PWA v1.4
